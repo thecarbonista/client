@@ -1,20 +1,16 @@
-import classnames from 'classnames';
+//import classnames from 'classnames';
 import { createElement } from 'preact';
 import propTypes from 'prop-types';
 
 import SvgIcon from '../../shared/components/svg-icon';
 
 /**
- * A button, one of three base types depending on provided props:
- * - Icon-only button: `icon` present, `buttonText` missing
- * - Text-only button: `buttonText` present, `icon` missing
- * - Icon and text: both `icon` and `buttonText` present
+ * A button. If not overridden with `className`, this will render one of two
+ * "types" of button:
+ * - a `labeled` button (if the button has any visible text)
+ * - an `icon-only` button (if the button has no visible text)
  *
- * Buttons may be additionally styled with 0 to n of (none are mutually exclusive):
- * - `useCompactStyle`: for fitting into tighter spaces
- * - `useInputStyle`: for placing an icon-only button next to an input field
- * - `usePrimaryStyle`: for applying "primary action" styling
- * - `className`: arbitrary additional class name(s) to apply
+ * If `className` is set, that class will override default styling entirely.
  */
 export default function Button({
   buttonText = '',
@@ -26,15 +22,14 @@ export default function Button({
   onClick = () => null,
   style = {},
   title,
-  useCompactStyle = false,
-  useInputStyle = false,
-  usePrimaryStyle = false,
 }) {
   // If `buttonText` is provided, the `title` prop is optional and the `button`'s
   // `title` attribute will be set from the `buttonText`
   title = title || buttonText;
 
-  const baseClassName = buttonText ? 'button--labeled' : 'button--icon-only';
+  const buttonModifier = buttonText ? 'labeled' : 'icon-only';
+  // `className` overrides default class naming when present
+  const baseClassName = className || `button--${buttonModifier}`;
 
   const extraProps = {};
 
@@ -54,23 +49,13 @@ export default function Button({
 
   return (
     <button
-      className={classnames(
-        'button',
-        baseClassName,
-        {
-          'button--compact': useCompactStyle,
-          'button--input': useInputStyle,
-          'button--primary': usePrimaryStyle,
-          'is-active': isPressed,
-        },
-        className
-      )}
+      className={baseClassName}
       onClick={onClick}
       style={style}
       disabled={disabled}
       {...extraProps}
     >
-      {icon && <SvgIcon name={icon} className="button__icon" />}
+      {icon && <SvgIcon name={icon} className={`${baseClassName}__icon`} />}
       {buttonText}
     </button>
   );
@@ -108,9 +93,8 @@ Button.propTypes = {
   buttonText: propTypes.string,
 
   /**
-   * optional CSS classes to add to the `button` element. These classes may
-   * control color, etc., but should not define padding or layout, which are
-   * owned by this component
+   * When present, this will be used as the base class name and will override
+   * all styling.
    */
   className: propTypes.string,
 
@@ -146,16 +130,4 @@ Button.propTypes = {
    * `title`, used for button `title`, is required unless `buttonText` is present
    */
   title: requiredStringIfButtonTextMissing,
-
-  /** Allows a variant of button that takes up less space */
-  useCompactStyle: propTypes.bool,
-
-  /** Allows a variant of button that can sit right next to an input field */
-  useInputStyle: propTypes.bool,
-
-  /**
-   * Does this button represent the "primary" action available? If so,
-   * differentiating styles will be applied.
-   */
-  usePrimaryStyle: propTypes.bool,
 };
